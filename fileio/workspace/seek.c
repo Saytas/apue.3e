@@ -10,7 +10,7 @@
 #include <stdlib.h>		/* for convenience */
 #include <stddef.h>		/* for offsetof */
 #include <string.h>		/* for convenience */
-#include <unistd.h>		/* for convenience */
+#include <unistd.h>		/* for convenience - read(), write() */
 #include <signal.h>		/* for SIG_ERR */
 
 int main(void) {

@@ -23,7 +23,7 @@ TEMPFILES=core core.* *.o temp.* *.out
 #include $(ROOT)/Make.defines.$(PLATFORM)
 
 #PROGS =	fileflags hole mycat seek
-PROGS =	seek hole
+PROGS =	seek hole mycat
 
 #all:	$(PROGS) setfl.o
 all:	$(PROGS)
