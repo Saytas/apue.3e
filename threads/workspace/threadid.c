@@ -2,18 +2,30 @@
  * #include "apue.h"
  */
 
-#include <fcntl.h>
+#include <pthread.h>
 
-#include <unistd.h>
+#include <sys/types.h>		/* some systems still require this */
+#include <sys/stat.h>
+#include <sys/ioctl.h>
 
 #include <stdio.h>		/* for convenience */
 #include <stdlib.h>		/* for convenience */
+#include <stddef.h>		/* for offsetof */
 #include <string.h>		/* for convenience */
+#include <unistd.h>		/* for convenience */
+#include <signal.h>		/* for SIG_ERR */
+
+#include <fcntl.h>
 
 #include <errno.h>		/* for definition of errno */
 #include <stdarg.h>		/* ISO C variable aruments */
 
 #define	MAXLINE	4096			/* max line length */
+
+/*
+ * Default file access permissions for new files.
+ */
+#define	FILE_MODE	(S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 
 /*
  * Print a message and return to caller.
@@ -33,20 +45,6 @@ static void err_doit(int errnoflag, int error, const char *fmt, va_list ap) {
 
 /*
  * Fatal error related to a system call.
- * Print a message, dump core, and terminate.
- */
-void err_dump(const char *fmt, ...) {
-	va_list		ap;
-
-	va_start(ap, fmt);
-	err_doit(1, errno, fmt, ap);
-	va_end(ap);
-	abort();		/* dump core and terminate */
-	exit(1);		/* shouldn't get here */
-}
-
-/*
- * Fatal error related to a system call.
  * Print a message and terminate.
  */
 void err_sys(const char *fmt, ...) {
@@ -59,55 +57,56 @@ void err_sys(const char *fmt, ...) {
 
 /*
  * Fatal error unrelated to a system call.
+ * Error code passed as explict parameter.
  * Print a message and terminate.
  */
-void err_quit(const char *fmt, ...) {
+void
+err_exit(int error, const char *fmt, ...)
+{
 	va_list		ap;
 
 	va_start(ap, fmt);
-	err_doit(0, 0, fmt, ap);
+	err_doit(1, error, fmt, ap);
 	va_end(ap);
 	exit(1);
 }
 
-int main(int argc, char *argv[]) {
-	int val;
 
-	if (argc != 2)
-		err_quit("usage: a.out <descriptor#>");
 
-	if ((val = fcntl(atoi(argv[1]), F_GETFL, 0)) < 0)
-		err_sys("fcntl error for fd %d", atoi(argv[1]));
 
-	switch (val & O_ACCMODE) {
-	case O_RDONLY:
-		printf("read only");
-		break;
 
-	case O_WRONLY:
-		printf("write only");
-		break;
 
-	case O_RDWR:
-		printf("read write");
-		break;
 
-	default:
-		err_dump("unknown access mode");
-	}
+pthread_t ntid;
 
-	if (val & O_APPEND)
-		printf(", append");
-	if (val & O_NONBLOCK)
-		printf(", nonblocking");
-	if (val & O_SYNC)
-		printf(", synchronous writes");
+void
+printids(const char *s)
+{
+	pid_t		pid;
+	pthread_t	tid;
 
-#if !defined(_POSIX_C_SOURCE) && defined(O_FSYNC) && (O_FSYNC != O_SYNC)
-	if (val & O_FSYNC)
-		printf(", synchronous writes");
-#endif
+	pid = getpid();
+	tid = pthread_self();
+	printf("%s pid %lu tid %lu (0x%lx)\n", s, (unsigned long)pid,
+	  (unsigned long)tid, (unsigned long)tid);
+}
 
-	putchar('\n');
+void *
+thr_fn(void *arg)
+{
+	printids("new thread: ");
+	return((void *)0);
+}
+
+int
+main(void)
+{
+	int		err;
+
+	err = pthread_create(&ntid, NULL, thr_fn, NULL);
+	if (err != 0)
+		err_exit(err, "can't create thread");
+	printids("main thread:");
+	sleep(1);
 	exit(0);
 }
