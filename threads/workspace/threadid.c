@@ -23,11 +23,6 @@
 #define	MAXLINE	4096			/* max line length */
 
 /*
- * Default file access permissions for new files.
- */
-#define	FILE_MODE	(S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
-
-/*
  * Print a message and return to caller.
  * Caller specifies "errnoflag".
  */
@@ -60,9 +55,7 @@ void err_sys(const char *fmt, ...) {
  * Error code passed as explict parameter.
  * Print a message and terminate.
  */
-void
-err_exit(int error, const char *fmt, ...)
-{
+void err_exit(int error, const char *fmt, ...) {
 	va_list		ap;
 
 	va_start(ap, fmt);
@@ -79,9 +72,7 @@ err_exit(int error, const char *fmt, ...)
 
 pthread_t ntid;
 
-void
-printids(const char *s)
-{
+void printids(const char *s) {
 	pid_t		pid;
 	pthread_t	tid;
 
@@ -91,17 +82,13 @@ printids(const char *s)
 	  (unsigned long)tid, (unsigned long)tid);
 }
 
-void *
-thr_fn(void *arg)
-{
+void *thr_fn(void *arg) {
 	printids("new thread: ");
 	return((void *)0);
 }
 
-int
-main(void)
-{
-	int		err;
+int main(void) {
+	int err;
 
 	err = pthread_create(&ntid, NULL, thr_fn, NULL);
 	if (err != 0)
