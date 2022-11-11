@@ -11,7 +11,7 @@
 #include <string.h>		/* for convenience */
 
 #include <errno.h>		/* for definition of errno */
-#include <stdarg.h>		/* ISO C variable aruments */
+#include <stdarg.h>		/* ISO C variable aruments va_start, va_end */
 
 #define	MAXLINE	4096			/* max line length */
 
@@ -62,8 +62,7 @@ void err_sys(const char *fmt, ...) {
  * Print a message and terminate.
  */
 void err_quit(const char *fmt, ...) {
-	va_list		ap;
-
+	va_list ap;
 	va_start(ap, fmt);
 	err_doit(0, 0, fmt, ap);
 	va_end(ap);
